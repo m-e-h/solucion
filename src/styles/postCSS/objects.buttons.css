@@ -1,0 +1,70 @@
+/*--------------------------------------------------------------
+# Buttons
+--------------------------------------------------------------*/
+
+a.btn,
+a.button {
+	opacity: 1;
+	text-decoration: none;
+
+	&:hover {
+		opacity: 1;
+		text-decoration: none;
+	}
+}
+
+input[type="submit"] {
+	background-color: $color1;
+	color: #fff;
+}
+
+a.btn-hollow,
+.btn-hollow,
+input[type="reset"],
+input[type="button"] {
+	color: $color1-dark;
+	border-color: currentColor;
+	background-color: $lighten3;
+	box-shadow: inset 0 0 0 20rem transparent;
+}
+
+.btn-hollow:hover,
+input[type="reset"]:hover,
+input[type="button"]:hover,
+.btn-hollow:focus,
+input[type="button"]:focus,
+input[type="reset"]:focus,
+.btn-hollow:active,
+input[type="button"]:active,
+input[type="reset"]:active {
+	color: #fff;
+	border-color: $darken3;
+	box-shadow: inset 0 0 0 20rem $color1-dark;
+}
+
+.btn-round {
+	border-radius: 50%;
+	overflow: hidden;
+	height: 2.5rem;
+	width: 2.5rem;
+	margin-left: 0;
+	margin-right: 0;
+	padding: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	> i {
+		line-height: 2.4rem;
+	}
+}
+
+.btn-sm {
+	padding: 0.25rem 0.5rem;
+}
+
+.btn-lg {
+	padding: 1rem 1.25rem;
+	font-size: 1.1rem;
+	font-weight: $bold;
+}

@@ -1,307 +1,221 @@
-// Require our dependencies
-var autoprefixer = require('autoprefixer');
-var bourbon = require('bourbon').includePaths;
-var browserSync = require('browser-sync');
-var cheerio = require('gulp-cheerio');
-var concat = require('gulp-concat');
-var cssnano = require('gulp-cssnano');
-var del = require('del');
+/**
+ * MEH gulp
+ */
+
+// 'use strict';
+
+var fs = require('graceful-fs');
+var path = require('path');
 var gulp = require('gulp');
-var gutil = require('gulp-util');
+var runSequence = require('run-sequence');
+var browserSync = require('browser-sync');
+var gulpLoadPlugins = require('gulp-load-plugins');
+var cssnano = require('gulp-cssnano');
 var imagemin = require('gulp-imagemin');
-var mqpacker = require('css-mqpacker');
-var neat = require('bourbon-neat').includePaths;
-var notify = require('gulp-notify');
-var plumber = require('gulp-plumber');
-var postcss = require('gulp-postcss');
-var reload = browserSync.reload;
-var rename = require('gulp-rename');
-var sass = require('gulp-sass');
-var sassLint = require('gulp-sass-lint');
-var sort = require('gulp-sort');
-var sourcemaps = require('gulp-sourcemaps');
-var spritesmith = require('gulp.spritesmith');
 var svgmin = require('gulp-svgmin');
-var svgstore = require('gulp-svgstore');
-var uglify = require('gulp-uglify');
-var wpPot = require('gulp-wp-pot');
+var postcss = require('gulp-postcss');
+var babel = require('gulp-babel');
+var oldie = require('oldie');
+var autoPrefixer = require('autoprefixer');
+var sourcemaps = require('gulp-sourcemaps');
+var perfectionist = require('perfectionist');
 
-// Set assets paths.
-var paths = {
-	css: ['./*.css', '!*.min.css'],
-	icons: 'assets/images/svg-icons/*.svg',
-	images: ['assets/images/*', '!assets/images/*.svg'],
-	php: ['./*.php', './**/*.php'],
-	sass: 'assets/sass/**/*.scss',
-	concat_scripts: 'assets/js/concat/*.js',
-	scripts: ['assets/js/*.js', '!assets/js/*.min.js', '!assets/js/customizer.js'],
-	sprites: 'assets/images/sprites/*.png'
-};
+var atImport = require("postcss-import");
+var pcMixins = require("postcss-mixins");
+var pcColor = require('postcss-color-function');
+var pcVars = require("postcss-advanced-variables");
+var pcNested = require("postcss-nested");
+var pcMedia = require("postcss-custom-media");
+var pcProperties = require("postcss-custom-properties");
+var pcFlex = require('postcss-flexibility');
+var pcSvg = require('postcss-inline-svg');
+var pcNoDups = require('postcss-discard-duplicates');
+var syntax = require('postcss-scss');
+var styleFmt = require('stylefmt');
 
-/**
- * Handle errors and alert the user.
- */
-function handleErrors () {
-	var args = Array.prototype.slice.call(arguments);
+var $ = gulpLoadPlugins();
+var reload = browserSync.reload;
 
-	notify.onError({
-		title: 'Task Failed [<%= error.message %>',
-		message: 'See console.',
-		sound: 'Sosumi' // See: https://github.com/mikaelbr/node-notifier#all-notification-options-with-their-defaults
-	}).apply(this, args);
+var AUTOPREFIXER_BROWSERS = [
+	'ie >= 10',
+	'ie_mob >= 10',
+	'last 2 ff versions',
+	'last 2 chrome versions',
+	'last 2 edge versions',
+	'last 2 safari versions',
+	'last 2 opera versions',
+	'ios >= 7',
+	'android >= 4.4',
+	'bb >= 10'
+];
 
-	gutil.beep(); // Beep 'sosumi' again
+var PRECSS_PLUGINS = [
+	atImport,
+	pcProperties,
+	pcVars,
+	pcColor,
+	pcMedia,
+	pcNested,
+	pcMixins,
+	pcSvg({
+		path: './images/icons'
+	}),
+	pcNoDups
+];
 
-	// Prevent the 'watch' task from stopping
-	this.emit('end');
-}
+var POSTCSS_PLUGINS = [
+	atImport,
+	autoPrefixer({
+		browsers: AUTOPREFIXER_BROWSERS
+	}),
+	//	stylefmt()
+	perfectionist({
+		cascade: false
+	})
+];
 
-/**
- * Delete style.css and style.min.css before we minify and optimize
- */
-gulp.task('clean:styles', function() {
-	return del(['style.css', 'style.min.css'])
+var POSTCSS_IE = [
+	autoPrefixer({
+		browsers: ['IE 8', 'IE 9']
+	}),
+	pcFlex,
+	oldie
+];
+
+var SOURCESJS = [
+	'src/scripts/main.js'
+];
+
+// ***** Development tasks ****** //
+// Lint JavaScript
+gulp.task('lint', function() {
+	gulp.src('src/scripts/*.js')
+		.pipe(xo())
 });
 
-/**
- * Compile Sass and run stylesheet through PostCSS.
- *
- * https://www.npmjs.com/package/gulp-sass
- * https://www.npmjs.com/package/gulp-postcss
- * https://www.npmjs.com/package/gulp-autoprefixer
- * https://www.npmjs.com/package/css-mqpacker
- */
-gulp.task('postcss', ['clean:styles'], function() {
-	return gulp.src('assets/sass/*.scss', paths.css)
-
-	// Deal with errors.
-	.pipe(plumber({ errorHandler: handleErrors }))
-
-	// Wrap tasks in a sourcemap.
-	.pipe(sourcemaps.init())
-
-		// Compile Sass using LibSass.
-		.pipe(sass({
-			includePaths: [].concat(bourbon, neat),
-			errLogToConsole: true,
-			outputStyle: 'expanded' // Options: nested, expanded, compact, compressed
+// ***** Production build tasks ****** //
+// Optimize images
+gulp.task('images', function() {
+	gulp.src('src/images/icons/*.svg')
+		.pipe(svgmin({
+			plugins: [{
+				cleanupIDs: true
+			}, {
+				removeTitle: true
+			}, {
+				removeAttrs: {
+					attrs: '(fill|stroke)'
+				}
+			}, {
+				addClassesToSVGElement: {
+					className: 'v-icon'
+				}
+			}, {
+				removeUselessStrokeAndFill: true
+			}, {
+				cleanupNumericValues: {
+					floatPrecision: 2
+				}
+			}, {
+				removeNonInheritableGroupAttrs: true
+			}, {
+				removeDimensions: true
+			}]
 		}))
+		.pipe(gulp.dest('./images/icons'))
+		.pipe($.size({
+			title: 'images'
+		}))
+});
 
-		// Parse with PostCSS plugins.
-		.pipe(postcss([
-			autoprefixer({
-				browsers: ['last 2 version']
-			}),
-			mqpacker({
-				sort: true
-			}),
-		]))
+// Compile and Automatically Prefix Stylesheets (production)
+gulp.task('preset', function() {
+	gulp.src('src/styles/postCSS/preset.css')
+		.pipe(postcss(PRECSS_PLUGINS, {
+			syntax: syntax
+		}))
+		.pipe($.concat('_preset.scss'))
+		.pipe(gulp.dest('src/styles/'))
+});
 
-	// Create sourcemap.
-	.pipe(sourcemaps.write())
+gulp.task('presass', function() {
+	gulp.src('src/styles/postCSS/index.css')
+		.pipe($.if('*.css', postcss(PRECSS_PLUGINS, {
+			syntax: syntax
+		})))
+		.pipe($.concat('_postcss.scss'))
+		.pipe(gulp.dest('src/styles/'))
+});
 
-	// Create style.css.
-	.pipe(gulp.dest('./'))
-	.pipe(browserSync.stream());
+gulp.task('styles', function() {
+	gulp.src('src/styles/**/*.scss')
+		.pipe(sourcemaps.init())
+
+	.pipe($.sass({
+			precision: 10,
+			onError: console.error.bind(console, 'Sass error:')
+		}))
+		.pipe(gulp.dest('src/styles/oldie/'))
+		.pipe($.if('*.css', $.concat('style.css')))
+		.pipe(postcss(POSTCSS_PLUGINS))
+		.pipe(gulp.dest('./'))
+		.pipe($.if('*.css', cssnano()))
+		.pipe($.concat('style.min.css'))
+		.pipe($.size({
+			title: 'styles'
+		}))
+		.pipe(sourcemaps.write('.'))
+		.pipe(gulp.dest('./'))
+});
+
+gulp.task('oldie', function() {
+	gulp.src('src/styles/oldie/ie-compat.css')
+		.pipe(postcss(POSTCSS_IE))
+		.pipe($.concat('oldie.css'))
+		.pipe(gulp.dest('css'))
+		.pipe($.if('*.css', cssnano()))
+		.pipe($.concat('oldie.min.css'))
+		.pipe(gulp.dest('css'))
+});
+
+// Concatenate And Minify JavaScript
+gulp.task('scripts', function() {
+	gulp.src(SOURCESJS)
+		.pipe(babel({
+			"presets": ["es2015"],
+			"only": [
+				"src/js/es6.js"
+			]
+		}))
+		.pipe($.concat('solucion.js'))
+		.pipe(gulp.dest('js'))
+		.pipe($.uglify())
+		.pipe($.concat('solucion.min.js'))
+		.pipe(gulp.dest('js'))
+		.pipe($.size({
+			title: 'scripts'
+		}))
 });
 
 /**
- * Minify and optimize style.css.
- *
- * https://www.npmjs.com/package/gulp-cssnano
+ * Defines the list of resources to watch for changes.
  */
-gulp.task('cssnano', ['postcss'], function() {
-	return gulp.src('style.css')
-	.pipe(plumber({ errorHandler: handleErrors }))
-	.pipe(cssnano({
-		safe: true // Use safe optimizations
-	}))
-	.pipe(rename('style.min.css'))
-	.pipe(gulp.dest('./'))
-	.pipe(browserSync.stream());
-});
-
-/**
- * Sass linting.
- *
- * https://www.npmjs.com/package/sass-lint
- */
-gulp.task('sass:lint', ['cssnano'], function() {
-	gulp.src([
-		'assets/sass/**/*.scss',
-		'!assets/sass/base/_normalize.scss',
-		'!assets/sass/utilities/animate/**/*.*',
-		'!assets/sass/base/_sprites.scss'
-	])
-	.pipe(sassLint())
-	.pipe(sassLint.format())
-	.pipe(sassLint.failOnError());
-});
-
-/**
- * Delete the svg-icons.svg before we minify, concat.
- */
-gulp.task('clean:icons', function() {
-	return del(['assets/images/svg-icons.svg']);
-});
-
-/**
- * Minify, concatenate, and clean SVG icons.
- *
- * https://www.npmjs.com/package/gulp-svgmin
- * https://www.npmjs.com/package/gulp-svgstore
- * https://www.npmjs.com/package/gulp-cheerio
- */
-gulp.task('svg', ['clean:icons'], function() {
-	return gulp.src(paths.icons)
-	.pipe(plumber({ errorHandler: handleErrors }))
-	.pipe(svgmin())
-	.pipe(rename({ prefix: 'icon-' }))
-	.pipe(svgstore({ inlineSvg: true }))
-	.pipe(cheerio({
-		run: function($, file) {
-			$('svg').attr('style', 'display:none');
-			$('[fill]').removeAttr('fill');
-		},
-		parserOptions: { xmlMode: true }
-	}))
-	.pipe(gulp.dest('assets/images/'))
-	.pipe(browserSync.stream());
-});
-
-/**
- * Optimize images.
- *
- * https://www.npmjs.com/package/gulp-imagemin
- */
-gulp.task('imagemin', function() {
-	return gulp.src(paths.images)
-	.pipe(plumber({ errorHandler: handleErrors }))
-	.pipe(imagemin({
-		optimizationLevel: 5,
-		progressive: true,
-		interlaced: true
-	}))
-	.pipe(gulp.dest('assets/images'));
-});
-
-/**
- * Delete the sprites.png before rebuilding sprite.
- */
-gulp.task('clean:sprites', function() {
-	return del(['assets/images/sprites.png']);
-});
-
-/**
- * Concatenate images into a single PNG sprite.
- *
- * https://www.npmjs.com/package/gulp.spritesmith
- */
-gulp.task('spritesmith', ['clean:sprites'], function() {
-	return gulp.src(paths.sprites)
-	.pipe(plumber({ errorHandler: handleErrors }))
-	.pipe(spritesmith({
-		imgName:   'sprites.png',
-		cssName:   '../../assets/sass/base/_sprites.scss',
-		imgPath:   'assets/images/sprites.png',
-		algorithm: 'binary-tree'
-	}))
-	.pipe(gulp.dest('assets/images/'))
-	.pipe(browserSync.stream());
-});
-
-/**
- * Delete scripts before we concat and minify.
- */
-gulp.task('clean:scripts', function() {
-	return del(['assets/js/project.js', 'assets/js/*.min.js']);
-});
-
-/**
- * Concatenate javascripts after they're clobbered.
- * https://www.npmjs.com/package/gulp-concat
- */
-gulp.task('concat', ['clean:scripts'], function() {
-	return gulp.src(paths.concat_scripts)
-	.pipe(plumber({ errorHandler: handleErrors }))
-	.pipe(sourcemaps.init())
-	.pipe(concat('project.js'))
-	.pipe(sourcemaps.write())
-	.pipe(gulp.dest('assets/js'))
-	.pipe(browserSync.stream());
-});
-
- /**
-  * Minify javascripts after they're concatenated.
-  * https://www.npmjs.com/package/gulp-uglify
-  */
-gulp.task('uglify', ['concat'], function() {
-	return gulp.src(paths.scripts)
-	.pipe(rename({suffix: '.min'}))
-	.pipe(uglify({
-		mangle: false
-	}))
-	.pipe(gulp.dest('assets/js'));
-});
-
-/**
- * Delete the theme's .pot before we create a new one.
- */
-gulp.task('clean:pot', function() {
-	return del(['languages/solucion.pot']);
-});
-
-/**
- * Scan the theme and create a POT file.
- *
- * https://www.npmjs.com/package/gulp-wp-pot
- */
-gulp.task('wp-pot', ['clean:pot'], function() {
-	return gulp.src(paths.php)
-	.pipe(plumber({ errorHandler: handleErrors }))
-	.pipe(sort())
-	.pipe(wpPot({
-		domain: 'solucion',
-		destFile:'solucion.pot',
-		package: 'solucion',
-		bugReport: 'https://github.com/m-e-h',
-		lastTranslator: 'Marty Helmick <wds@webdevstudios.com>',
-		team: 'Team <wds@webdevstudios.com>'
-	}))
-	.pipe(gulp.dest('languages/'));
-});
-
-/**
- * Process tasks and reload browsers on file changes.
- *
- * https://www.npmjs.com/package/browser-sync
- */
-gulp.task('watch', function() {
-
-	// Kick off BrowserSync.
-	browserSync({
-		open: false,             // Open project in a new tab?
-		injectChanges: true,     // Auto inject changes instead of full reload
-		proxy: "http://underscores.dev",         // Use https://github.com/m-e-h:3000 to use BrowserSync
-		watchOptions: {
-			debounceDelay: 1000  // Wait 1 second before injecting
-		}
+// Build and serve the output
+gulp.task('serve', ['scripts', 'styles'], function() {
+	browserSync.init({
+		// proxy: "local.wordpress.dev"
+		// proxy: "local.wordpress-trunk.dev"
+		proxy: 'rcdoc.dev'
+			// proxy: "127.0.0.1:8080/wordpress/"
 	});
 
-	// Run tasks when files change.
-	gulp.watch(paths.icons, ['icons']);
-	gulp.watch(paths.sass, ['styles']);
-	gulp.watch(paths.scripts, ['scripts']);
-	gulp.watch(paths.concat_scripts, ['scripts']);
-	gulp.watch(paths.sprites, ['sprites']);
+	gulp.watch(['*/**/*.php'], reload);
+	gulp.watch(['src/**/*.{scss,css}'], ['styles', reload]);
+	gulp.watch(['src/**/*.js'], ['lint', 'scripts']);
+	gulp.watch(['src/images/**/*'], reload);
 });
 
-/**
- * Create individual tasks.
- */
-gulp.task('i18n', ['wp-pot']);
-gulp.task('icons', ['svg']);
-gulp.task('scripts', ['uglify']);
-gulp.task('styles', ['cssnano']);
-gulp.task('sprites', ['spritesmith']);
-gulp.task('default', ['sprites', 'i18n', 'icons', 'styles', 'scripts', 'imagemin']);
+// Build production files, the default task
+gulp.task('default', function(cb) {
+	runSequence('images', 'presass', ['styles'], 'oldie', 'scripts', cb);
+});

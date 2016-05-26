@@ -1,0 +1,21 @@
+{
+    "name": "m-e-h/solucion",
+    "description": "WordPress Starter theme.",
+    "keywords": ["wordpress", "theme", "solucion"],
+    "type": "wordpress-theme",
+    "license": "GPL-2.0+",
+    "authors": [{
+        "name": "Marty Helmick",
+        "email": "info@martyhelmick.com"
+    }],
+    "support": {
+        "issues": "https://github.com/m-e-h/solucion/issues"
+    },
+    "config": {
+        "vendor-dir": "vendor"
+    },
+    "require": {
+        "justintadlock/hybrid-core": "3.1.x-dev",
+        "composer/installers": "~1.0"
+    }
+}

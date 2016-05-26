@@ -2,58 +2,54 @@
 /**
  * The main template file.
  *
- * This is the most generic template file in a WordPress theme
- * and one of the two required files for a theme (the other being style.css).
- * It is used to display a page when nothing more specific matches a query.
- * E.g., it puts together the home page when no home.php file exists.
- *
- * @link https://codex.wordpress.org/Template_Hierarchy
- *
  * @package Solucion
  */
 
 get_header(); ?>
 
-	<div class="wrap">
-		<div class="primary content-area">
-			<main id="main" class="site-main" role="main">
+<?php get_template_part( 'components/page', 'header' ); ?>
 
-			<?php
-			if ( have_posts() ) :
+<div <?php hybrid_attr( 'grid' ); ?>>
 
-				if ( is_home() && ! is_front_page() ) : ?>
-					<header>
-						<h1 class="page-title screen-reader-text"><?php single_post_title(); ?></h1>
-					</header>
+	<?php tha_content_before(); ?>
 
-				<?php
-				endif;
+	<main <?php hybrid_attr( 'content' ); ?>>
 
-				/* Start the Loop */
-				while ( have_posts() ) : the_post();
+		<?php tha_content_top(); ?>
 
-					/*
-					 * Include the Post-Format-specific template for the content.
-					 * If you want to override this in a child theme, then include a file
-					 * called content-___.php (where ___ is the Post Format name) and that will be used instead.
-					 */
-					get_template_part( 'template-parts/content', get_post_format() );
+		<?php if ( have_posts() ) : ?>
 
-				endwhile;
+			<?php tha_content_while_before(); ?>
 
-				the_posts_navigation();
+			<?php while ( have_posts() ) : the_post(); ?>
 
-			else :
+				<?php tha_entry_before(); ?>
 
-				get_template_part( 'template-parts/content', 'none' );
+				<?php hybrid_get_content_template(); ?>
 
-			endif; ?>
+				<?php tha_entry_after(); ?>
 
-			</main><!-- #main -->
-		</div><!-- .primary -->
+			<?php endwhile; ?>
 
-		<?php get_sidebar(); ?>
+			<?php tha_content_while_after(); ?>
 
-	</div><!-- .wrap -->
+			<?php get_template_part( 'components/posts', 'pagination' ); ?>
 
-<?php get_footer(); ?>
+		<?php else : // If no posts were found. ?>
+
+			<?php get_template_part( 'content/none' ); ?>
+
+		<?php endif; ?>
+
+		<?php tha_content_bottom(); ?>
+
+	</main><!-- /.content -->
+
+	<?php tha_content_after(); ?>
+
+	<?php hybrid_get_sidebar( 'primary' ); ?>
+
+</div><!-- /.grid -->
+
+<?php
+get_footer();

@@ -1,0 +1,148 @@
+.v-icon {
+	width: 1em;
+	height: auto;
+	vertical-align: -0.15em;
+	fill: currentColor;
+}
+
+.o-cell > .v-icon {
+	width: 100%;
+	max-width: 50%;
+}
+
+.icon-xs {
+	font-size: 1rem;
+}
+
+.icon-sm {
+	font-size: 1.5rem;
+}
+
+.icon-md {
+	width: 100%;
+	max-width: 90px;
+	max-height: 90px;
+
+	svg {
+		height: auto;
+		width: 100%;
+	}
+}
+
+.icon-lg {
+	width: 100%;
+	max-width: 210px;
+	max-height: 210px;
+
+	svg {
+		height: auto;
+		width: 100%;
+	}
+}
+
+.icon-xl {
+	width: 100%;
+	max-width: 310px;
+	max-height: 310px;
+
+	svg {
+		height: auto;
+		width: 100%;
+	}
+}
+
+.icon-refresh {
+	background-size: contain;
+	@mixin icon refresh, #36474f;
+	width: 2em;
+	height: 2em;
+}
+
+.icon-account {
+	background-size: 1.5em;
+	background-position: center;
+	@mixin icon account_circle, #fff;
+	width: 2em;
+	height: 2em;
+}
+
+.icon-edit {
+	background-size: contain;
+	@mixin icon edit, #36474f;
+	width: 2em;
+	height: 2em;
+}
+
+.icon-info:before {
+	@mixin icon info;
+}
+
+.icon-heart:before {
+	@mixin icon heart;
+}
+
+.icon-twitter:before,
+a[href*="twitter.com"]:before {
+	@mixin icon twitter, #1DA1F2;
+}
+
+.icon-facebook:before,
+a[href*="facebook.com"]:before {
+	@mixin icon facebook, #3B5998;
+}
+
+.icon-youtube:before,
+a[href*="youtube.com"]:before,
+a[href*="youtu.be"]:before {
+	@mixin icon youtube, #cd201f;
+}
+
+.icon-instagram:before {
+	@mixin icon instagram;
+}
+
+.icon-pdf:before,
+a[href*=".pdf"]:not(.btn):before {
+	@mixin icon file-pdf;
+}
+
+.icon-map:before,
+a[href*="maps.google.com"]:before {
+	@mixin icon map_pin;
+}
+
+a[href*=".doc"]:not(.btn):before,
+a[href*=".docx"]:not(.btn):before {
+	@mixin icon file-word;
+}
+
+a[href*=".xls"]:not(.btn):before,
+a[href*=".xlsx"]:not(.btn):before {
+	@mixin icon file-excel;
+}
+
+a[href*="tel:"]:before {
+	@mixin icon call;
+}
+
+a[href*="mailto:"]:before {
+	@mixin icon mail;
+}
+
+
+a[href*="twitter.com"],
+a[href*="facebook.com"],
+a[href*="youtube.com"],
+a[href*="youtu.be"],
+a[href*=".pdf"],
+a[href*="maps.google.com"],
+a[href*=".doc"],
+a[href*=".docx"],
+a[href*=".xls"],
+a[href*=".xlsx"],
+a[href*="tel:"],
+a[href*="mailto:"] {
+	display: inline-flex;
+	align-items: center;
+	vertical-align: middle;
+}
