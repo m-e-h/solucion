@@ -62,7 +62,7 @@ final class Solucion_Custom_Styles {
 		if ( $GLOBALS['cptarchives'] && $landing_prime_color && ! is_front_page() ) {
 			return trim( $landing_prime_color, '#' ); }
 
-		return $hex ? $hex : '2980b9';
+		return $hex ? $hex : 'cc0000';
 	}
 
 	public function secondary_color_default( $hex ) {
@@ -78,7 +78,7 @@ final class Solucion_Custom_Styles {
 		if ( $GLOBALS['cptarchives'] && $landing_second_color && ! is_front_page() ) {
 			return trim( $landing_second_color, '#' ); }
 
-		return $hex ? $hex : '16a085';
+		return $hex ? $hex : '333333';
 	}
 
 	/**
@@ -225,22 +225,6 @@ final class Solucion_Custom_Styles {
 		/* Return the styles. */
 		return str_replace( array( "\r", "\n", "\t" ), '', $style );
 	}
-
-	// function get_abe_font_styles() {
-	// 	$font        = '';
-	// 	$h_family = get_theme_mod( 'heading_font', '' );
-	// 	$b_family    = get_theme_mod( 'body_font', '' );
-
-	// 	if ( $h_family ) {
-	// 		$font .= sprintf( "#page .u-heading {font-family: '%s';}", esc_attr( $h_family ) ); }
-
-	// 	if ( $b_family ) {
-	// 		$font .= sprintf( "#page .u-body,body,p {font-family: '%s';}", esc_attr( $b_family ) ); }
-
-	// 	if ( $font ) {
-	// 		echo "\n" . '<style type="text/css" id="font-css">' . $font . '</style>' . "\n";
-	// 	}
-	// }
 
 	/**
 	 * Returns the instance.
